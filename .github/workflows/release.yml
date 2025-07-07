@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+    
+    - name: Build executables
+      run: |
+        # Build devproxy
+        go build -o devproxy.exe ./cmd/devproxy
+        
+        # Build devctl
+        go build -o devctl.exe ./cmd/devctl
+        
+        # Build devproxy-tray
+        go build -ldflags="-H windowsgui" -o devproxy-tray.exe ./cmd/devproxy-tray
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+    
+    - name: Upload devproxy.exe
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./devproxy.exe
+        asset_name: devproxy.exe
+        asset_content_type: application/octet-stream
+    
+    - name: Upload devctl.exe
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./devctl.exe
+        asset_name: devctl.exe
+        asset_content_type: application/octet-stream
+    
+    - name: Upload devproxy-tray.exe
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./devproxy-tray.exe
+        asset_name: devproxy-tray.exe
+        asset_content_type: application/octet-stream
