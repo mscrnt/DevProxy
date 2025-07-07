@@ -23,52 +23,37 @@ jobs:
     
     - name: Build executables
       run: |
+        # Show current directory and structure
+        echo "Current directory:"
+        pwd
+        echo "Directory contents:"
+        dir
+        echo "CMD directory contents:"
+        dir cmd
+        
         # Build devproxy
-        go build -o devproxy.exe ./cmd/devproxy
+        go build -v -o devproxy.exe ./cmd/devproxy
         
         # Build devctl
-        go build -o devctl.exe ./cmd/devctl
+        go build -v -o devctl.exe ./cmd/devctl
         
         # Build devproxy-tray
-        go build -ldflags="-H windowsgui" -o devproxy-tray.exe ./cmd/devproxy-tray
+        go build -v -ldflags="-H windowsgui" -o devproxy-tray.exe ./cmd/devproxy-tray
+        
+        # Verify builds
+        echo "Built files:"
+        dir *.exe
     
     - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        name: Release ${{ github.ref_name }}
         draft: false
         prerelease: false
-    
-    - name: Upload devproxy.exe
-      uses: actions/upload-release-asset@v1
+        files: |
+          devproxy.exe
+          devctl.exe
+          devproxy-tray.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./devproxy.exe
-        asset_name: devproxy.exe
-        asset_content_type: application/octet-stream
-    
-    - name: Upload devctl.exe
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./devctl.exe
-        asset_name: devctl.exe
-        asset_content_type: application/octet-stream
-    
-    - name: Upload devproxy-tray.exe
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./devproxy-tray.exe
-        asset_name: devproxy-tray.exe
-        asset_content_type: application/octet-stream
