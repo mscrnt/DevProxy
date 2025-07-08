@@ -42,25 +42,27 @@ jobs:
         
         # Build devproxy with proper Windows settings
         echo "Building devproxy..."
-        go build -v -o devproxy.exe ./cmd/devproxy
+        go build -v -o devproxy.exe ./cmd/devproxy 2>&1
         if ($LASTEXITCODE -ne 0) {
-          echo "Failed to build devproxy"
+          echo "Failed to build devproxy with exit code: $LASTEXITCODE"
+          # Try again with more verbose output
+          go build -v -x -o devproxy.exe ./cmd/devproxy 2>&1
           exit 1
         }
         
         # Build devctl
         echo "Building devctl..."
-        go build -v -o devctl.exe ./cmd/devctl
+        go build -v -o devctl.exe ./cmd/devctl 2>&1
         if ($LASTEXITCODE -ne 0) {
-          echo "Failed to build devctl"
+          echo "Failed to build devctl with exit code: $LASTEXITCODE"
           exit 1
         }
         
         # Build devproxy-tray
         echo "Building devproxy-tray..."
-        go build -v -ldflags="-H windowsgui" -o devproxy-tray.exe ./cmd/devproxy-tray
+        go build -v -ldflags="-H windowsgui" -o devproxy-tray.exe ./cmd/devproxy-tray 2>&1
         if ($LASTEXITCODE -ne 0) {
-          echo "Failed to build devproxy-tray"
+          echo "Failed to build devproxy-tray with exit code: $LASTEXITCODE"
           exit 1
         }
         

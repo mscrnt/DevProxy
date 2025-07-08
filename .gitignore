@@ -1,7 +1,8 @@
 # Binaries
 *.exe
-devproxy
-devctl
+/devproxy
+/devctl
+/devproxy-tray
 
 # Config and logs
 config/config.json
