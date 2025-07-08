@@ -345,8 +345,19 @@ func validateRequest(req *RunRequest) error {
 	}
 
 	fullCmd := req.Command + " " + strings.Join(req.Args, " ")
+	fullCmdLower := strings.ToLower(fullCmd)
 	for _, banned := range bannedKeys {
-		if strings.Contains(strings.ToLower(fullCmd), banned) {
+		// Check for banned keyword with word boundaries
+		// This prevents false positives like "Scripts" matching "sc"
+		if banned == "sc" {
+			// Special case for "sc" - must be whole word
+			if strings.Contains(fullCmdLower, " "+banned+" ") || 
+			   strings.HasPrefix(fullCmdLower, banned+" ") ||
+			   strings.HasSuffix(fullCmdLower, " "+banned) ||
+			   fullCmdLower == banned {
+				return fmt.Errorf("command contains banned keyword: %s", banned)
+			}
+		} else if strings.Contains(fullCmdLower, banned) {
 			return fmt.Errorf("command contains banned keyword: %s", banned)
 		}
 	}
