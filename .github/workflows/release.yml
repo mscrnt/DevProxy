@@ -21,6 +21,11 @@ jobs:
       with:
         go-version: '1.21'
     
+    - name: Get dependencies
+      run: |
+        go mod download
+        go mod verify
+    
     - name: Build executables
       run: |
         # Show current directory and structure
@@ -31,14 +36,33 @@ jobs:
         echo "CMD directory contents:"
         dir cmd
         
-        # Build devproxy
+        # Set environment for Windows builds
+        $env:GOOS = "windows"
+        $env:GOARCH = "amd64"
+        
+        # Build devproxy with proper Windows settings
+        echo "Building devproxy..."
         go build -v -o devproxy.exe ./cmd/devproxy
+        if ($LASTEXITCODE -ne 0) {
+          echo "Failed to build devproxy"
+          exit 1
+        }
         
         # Build devctl
+        echo "Building devctl..."
         go build -v -o devctl.exe ./cmd/devctl
+        if ($LASTEXITCODE -ne 0) {
+          echo "Failed to build devctl"
+          exit 1
+        }
         
         # Build devproxy-tray
+        echo "Building devproxy-tray..."
         go build -v -ldflags="-H windowsgui" -o devproxy-tray.exe ./cmd/devproxy-tray
+        if ($LASTEXITCODE -ne 0) {
+          echo "Failed to build devproxy-tray"
+          exit 1
+        }
         
         # Verify builds
         echo "Built files:"
